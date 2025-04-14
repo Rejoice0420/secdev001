@@ -21,14 +21,14 @@ pipeline {
 
     stage('Build Docker Image') {
       steps {
-        echo "🐳 Building Docker image: ${FULL_IMAGE}"
+        echo "🐳 Building Docker image..."
         sh "docker build -t ${FULL_IMAGE} ."
       }
     }
 
     stage('(Optional) Unit Tests') {
       steps {
-        echo "✅ Running unit tests (if any)..."
+        echo "✅ Running unit tests (add real test scripts here)..."
         // sh './run-tests.sh'
       }
     }
@@ -47,21 +47,21 @@ pipeline {
 
     stage('Deploy to EC2') {
       steps {
-        echo "⚙️ Deploying ${FULL_IMAGE} to EC2 instance ${EC2_IP}..."
+        echo "⚙️ Deploying container to EC2..."
         script {
           withCredentials([sshUserPrivateKey(
             credentialsId: SSH_CREDENTIALS_ID,
             keyFileVariable: 'KEY',
             usernameVariable: 'USER'
           )]) {
-            sh """#!/bin/bash
-              ssh -o StrictHostKeyChecking=no -i "$KEY" "$USER@$EC2_IP" <<EOF
+            sh '''#!/bin/bash
+              ssh -o StrictHostKeyChecking=no -i "$KEY" "$USER@${EC2_IP}" <<EOF
                 docker stop ${CONTAINER_NAME} || true
                 docker rm ${CONTAINER_NAME} || true
                 docker pull ${FULL_IMAGE}
                 docker run -d --name ${CONTAINER_NAME} -p 8082:8080 ${FULL_IMAGE}
 EOF
-            """
+            '''
           }
         }
       }
@@ -69,8 +69,8 @@ EOF
 
     stage('Security Scan with Nmap') {
       steps {
-        echo "🔒 Running Nmap scan on ${EC2_IP} (port 80)..."
-        sh "nmap -A -T4 -p 8080 ${EC2_IP} -oN nmap-scan.txt"
+        echo "🔒 Running post-deploy Nmap scan..."
+        sh "nmap -A -T4 -p 80 ${EC2_IP} -oN nmap-scan.txt"
         archiveArtifacts artifacts: 'nmap-scan.txt'
       }
     }
@@ -78,7 +78,7 @@ EOF
 
   post {
     success {
-      echo "✅ Build, deployment, and scan completed successfully!"
+      echo "✅ Build, deploy, and scan completed successfully!"
     }
     failure {
       echo "❌ Pipeline failed. Please check the logs."
