@@ -71,7 +71,7 @@ EOF
     stage('Security Scan with Nmap') {
       steps {
         echo "🔒 Running post-deploy Nmap scan..."
-        sh "nmap -A -T4 -p 8082 ${EC2_IP} -oN nmap-scan.txt"
+        sh "nmap -p- -sV -T4 ${EC2_IP} -oN nmap-scan.txt"
         archiveArtifacts artifacts: 'nmap-scan.txt'
       }
     }
