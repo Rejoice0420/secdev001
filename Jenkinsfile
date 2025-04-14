@@ -8,6 +8,7 @@ pipeline {
     CONTAINER_NAME = "healthcare-con1"
     EC2_IP = "54.226.102.176"
     SSH_CREDENTIALS_ID = "ec2-deploy-key"
+    EMAIL_RECIPIENT = "r.itur985@mybvc.ca"  // Replace with the recipient's email
   }
 
   stages {
@@ -72,6 +73,18 @@ EOF
         echo "🔒 Running post-deploy Nmap scan..."
         sh "nmap -A -T4 -p 8082 ${EC2_IP} -oN nmap-scan.txt"
         archiveArtifacts artifacts: 'nmap-scan.txt'
+      }
+    }
+
+    stage('Send Nmap Scan Results via Email') {
+      steps {
+        echo "📧 Sending Nmap scan results via email..."
+        script {
+          sh '''#!/bin/bash
+            # Send email with the nmap scan results
+            echo "Attached are the Nmap scan results from the deployment." | mail -s "Nmap Scan Results" -A nmap-scan.txt ${EMAIL_RECIPIENT}
+          '''
+        }
       }
     }
   }
