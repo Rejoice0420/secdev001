@@ -7,7 +7,7 @@ pipeline {
     FULL_IMAGE = "${IMAGE_NAME}:${TAG}"
     CONTAINER_NAME = "healthcare-con1"
     EC2_IP = "54.226.102.176"
-    SSH_CREDENTIALS_ID = "ec2-deploy-key"
+    SSH_CREDENTIALS_ID = "ec2-user"
   }
 
   stages {
